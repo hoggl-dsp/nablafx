@@ -2,7 +2,7 @@ import math
 import torch
 from einops import rearrange, repeat
 from torch import Tensor
-from rational.torch import Rational
+# from rational.torch import Rational
 
 
 # -----------------------------------------------------------------------------

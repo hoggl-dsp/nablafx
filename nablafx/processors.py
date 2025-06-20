@@ -1,5 +1,5 @@
 import torch
-from rational.torch import Rational
+# from rational.torch import Rational
 from typing import Tuple
 
 from nablafx.dsp import denormalize_parameters, biquad, sosfilt, sosfilt_via_fsm, lfilter_via_fsm
