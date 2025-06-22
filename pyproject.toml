@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nablafx"
+version = "0.1.0"
+description = "A package for the NablaFX project"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "auraloss",
+    "einops",
+    "jsonargparse[signatures]>=4.27.7",
+    "lightning",
+    "lightning-utilities",
+    "matplotlib",
+    "natsort",
+    "numpy",
+    "scipy",
+    "torch",
+    "torchaudio",
+    "torchmetrics",
+    "torchvision",
+    "typing-extensions",
+    "wandb",
+]
+
+[tool.setuptools]
+packages = ["nablafx"]
