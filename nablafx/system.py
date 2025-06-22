@@ -12,7 +12,6 @@ from typing import List
 from nablafx.plotting import plot_gb_model, plot_frequency_response_steps
 from nablafx.models import BlackBoxModel, GreyBoxModel
 from nablafx.loss import TimeAndFrequencyDomainLoss
-from frechet_audio_distance import FrechetAudioDistance
 
 import sys
 
@@ -75,11 +74,12 @@ class BaseSystem(pl.LightningModule):
 
     def on_train_end(self):
         # self.log_frequency_response() # atm needs too much memory
-        self.compute_and_log_fad(mode="val")
+        # self.compute_and_log_fad(mode="val")
+        pass
 
     def on_test_epoch_end(self):
         self.log_frequency_response()
-        self.compute_and_log_fad(mode="test")
+        # self.compute_and_log_fad(mode="test")
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
@@ -254,83 +254,83 @@ class BaseSystem(pl.LightningModule):
             plot = plot_frequency_response_steps(self.model)
         self.logger.experiment.log({f"response/freq+phase": [wandb.Image(plot, caption=f"")]}, step=self.trainer.global_step)
 
-    def compute_and_log_fad(self, mode):
-        print("\nComputing and logging FAD...")
-        run_dir = self.logger.experiment.dir
-        pred_dir = os.path.join(run_dir, f"media/audio/audio/{mode}/pred")
-        target_dir = os.path.join(run_dir, f"media/audio/audio/{mode}/target")
+    # def compute_and_log_fad(self, mode):
+    #     print("\nComputing and logging FAD...")
+    #     run_dir = self.logger.experiment.dir
+    #     pred_dir = os.path.join(run_dir, f"media/audio/audio/{mode}/pred")
+    #     target_dir = os.path.join(run_dir, f"media/audio/audio/{mode}/target")
 
-        parent_dir = os.path.abspath(os.getcwd())
-        ckpt_dir = os.path.join(parent_dir, "checkpoints_fad")
+    #     parent_dir = os.path.abspath(os.getcwd())
+    #     ckpt_dir = os.path.join(parent_dir, "checkpoints_fad")
 
-        print(f"\n\nComputing FAD for {run_dir}...")
+    #     print(f"\n\nComputing FAD for {run_dir}...")
 
-        fad_vggish = FrechetAudioDistance(
-            os.path.join(ckpt_dir, "vggish"),
-            model_name="vggish",
-            sample_rate=16000,
-            use_pca=False,
-            use_activation=False,
-            verbose=False,
-        )
+    #     fad_vggish = FrechetAudioDistance(
+    #         os.path.join(ckpt_dir, "vggish"),
+    #         model_name="vggish",
+    #         sample_rate=16000,
+    #         use_pca=False,
+    #         use_activation=False,
+    #         verbose=False,
+    #     )
 
-        fad_score_vggish = fad_vggish.score(
-            target_dir,
-            pred_dir,
-        )
+    #     fad_score_vggish = fad_vggish.score(
+    #         target_dir,
+    #         pred_dir,
+    #     )
 
-        fad_pann = FrechetAudioDistance(
-            os.path.join(ckpt_dir, "pann"),
-            model_name="pann",
-            sample_rate=32000,
-            verbose=False,
-        )
+    #     fad_pann = FrechetAudioDistance(
+    #         os.path.join(ckpt_dir, "pann"),
+    #         model_name="pann",
+    #         sample_rate=32000,
+    #         verbose=False,
+    #     )
 
-        fad_score_pann = fad_pann.score(
-            target_dir,
-            pred_dir,
-        )
+    #     fad_score_pann = fad_pann.score(
+    #         target_dir,
+    #         pred_dir,
+    #     )
 
-        fad_clap = FrechetAudioDistance(
-            os.path.join(ckpt_dir, "clap"),
-            model_name="clap",
-            submodel_name="630k-audioset",
-            sample_rate=48000,
-            verbose=False,
-            enable_fusion=False,
-        )
+    #     fad_clap = FrechetAudioDistance(
+    #         os.path.join(ckpt_dir, "clap"),
+    #         model_name="clap",
+    #         submodel_name="630k-audioset",
+    #         sample_rate=48000,
+    #         verbose=False,
+    #         enable_fusion=False,
+    #     )
 
-        fad_score_clap = fad_clap.score(
-            target_dir,
-            pred_dir,
-        )
+    #     fad_score_clap = fad_clap.score(
+    #         target_dir,
+    #         pred_dir,
+    #     )
 
-        fad_afxrep = FrechetAudioDistance(
-            os.path.join(ckpt_dir, "afx-rep"),
-            model_name="afx-rep",
-            sample_rate=48000,
-            verbose=False,
-        )
+    #     fad_afxrep = FrechetAudioDistance(
+    #         os.path.join(ckpt_dir, "afx-rep"),
+    #         model_name="afx-rep",
+    #         sample_rate=48000,
+    #         verbose=False,
+    #     )
 
-        fad_score_afxrep = fad_afxrep.score(
-            target_dir,
-            pred_dir,
-        )
+    #     fad_score_afxrep = fad_afxrep.score(
+    #         target_dir,
+    #         pred_dir,
+    #     )
 
-        print(f"\nFAD score (vggish): {fad_score_vggish}")
-        print(f"FAD score (pann): {fad_score_pann}")
-        print(f"FAD score (clap): {fad_score_clap}")
-        print(f"FAD score (afx-rep): {fad_score_afxrep}")
+    #     print(f"\nFAD score (vggish): {fad_score_vggish}")
+    #     print(f"FAD score (pann): {fad_score_pann}")
+    #     print(f"FAD score (clap): {fad_score_clap}")
+    #     print(f"FAD score (afx-rep): {fad_score_afxrep}")
 
-        self.logger.experiment.log(
-            {
-                f"metrics/{mode}/fad-vggish": fad_score_vggish,
-                f"metrics/{mode}/fad-pann": fad_score_pann,
-                f"metrics/{mode}/fad-clap": fad_score_clap,
-                f"metrics/{mode}/fad-afxrep": fad_score_afxrep,
-            },
-            step=self.trainer.global_step,
-        )
+    #     self.logger.experiment.log(
+    #         {
+    #             f"metrics/{mode}/fad-vggish": fad_score_vggish,
+    #             f"metrics/{mode}/fad-pann": fad_score_pann,
+    #             f"metrics/{mode}/fad-clap": fad_score_clap,
+    #             f"metrics/{mode}/fad-afxrep": fad_score_afxrep,
+    #         },
+    #         step=self.trainer.global_step,
+    #     )
 
 
 # -----------------------------------------------------------------------------
